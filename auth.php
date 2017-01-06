@@ -6,15 +6,20 @@
  * @author  Jury Verrigni <jury.verrigni@skayahack.it>
  */
 
-// must be run within Dokuwiki
 if(!defined('DOKU_INC')) die();
+
 /**
  * Class auth_plugin_authjoomla3
  */
 class auth_plugin_authjoomla3 extends auth_plugin_authpdo {
+
 	protected $joomlaPath = '';
 	protected $joomlaConfig = [];
 
+	/**
+	* Before calling AuthPDO's construct we want to override database's 
+	* settings with Joomla's ones
+	**/
 	public function __construct() {
 		$this->joomlaPath = $this->getConf('joomlaPath');
 
@@ -31,6 +36,11 @@ class auth_plugin_authjoomla3 extends auth_plugin_authpdo {
 		parent::__construct();
 	}
 
+	/**
+	* After fetching user's groups we want to rename Joomla's default
+	* Administrator and Super Users to admin in order to make them automatically
+	* admin on DokuWiki
+	**/
     protected function _selectUserGroups($userdata) {
     	$groups = parent::_selectUserGroups($userdata);
     	foreach ($groups as &$group) {
@@ -41,8 +51,13 @@ class auth_plugin_authjoomla3 extends auth_plugin_authpdo {
         return $groups;
     }
 
+    /**
+    * Here we override PDO's config with Joomla's one. 
+    * Called from the constructor
+    */
 	protected function setupPdoConfig() {
         require_once $this->joinPaths($this->joomlaPath, 'configuration.php');
+
 		$this->joomlaConfig = new JConfig;
 		$this->joomlaConfig->dbtype = str_replace('mysqli', 'mysql', $this->joomlaConfig->dbtype);
 		$this->conf['dsn'] = sprintf('%s:dbname=%s;host=%s', $this->joomlaConfig->dbtype, $this->joomlaConfig->db, $this->joomlaConfig->host);
@@ -52,8 +67,15 @@ class auth_plugin_authjoomla3 extends auth_plugin_authpdo {
 		$this->setupPdoQueries();
 	}
 
+	/**
+	* These are the queries required from authPDO.
+	* Creating/deleting/updating users and groups is done from Joomla itself.
+	*/
 	protected function setupPdoQueries() {
-		$this->conf['select-user'] = 'SELECT username as user, name, email as mail, password as hash, id as uid FROM ' . $this->getTableName('users') . ' WHERE username = :user';	
+		$this->conf['select-user'] = sprintf('
+			SELECT username as user, name, email as mail, password as hash, id as uid 
+			FROM %s WHERE username = :user',
+			$this->getTableName('users'));	
 
 		$this->conf['select-user-groups'] = sprintf('
 			SELECT title as `group` FROM %s as groups 
