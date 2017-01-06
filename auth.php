@@ -14,7 +14,7 @@ if(!defined('DOKU_INC')) die();
 class auth_plugin_authjoomla3 extends auth_plugin_authpdo {
 
 	protected $joomlaPath = '';
-	protected $joomlaConfig = [];
+	protected $joomlaConfig = array();
 
 	/**
 	* Before calling AuthPDO's construct we want to override database's 
@@ -69,7 +69,8 @@ class auth_plugin_authjoomla3 extends auth_plugin_authpdo {
 
 	/**
 	* These are the queries required from authPDO.
-	* Creating/deleting/updating users and groups is done from Joomla itself.
+	* Creating/deleting/updating users and groups is done from
+	* Joomla itself so we only need to fetch data from the DB.
 	*/
 	protected function setupPdoQueries() {
 		$this->conf['select-user'] = sprintf('

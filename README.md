@@ -8,7 +8,7 @@ To make it work:
   - Paste the downloaded source inside authjoomla3
   - Navigate to your doku wiki config page (doku.php?id=start&do=admin&page=config)
   - The first thing to do is to go to the Authentication page and change `Authentication backend` with authjoomla3. Do not save yet.
-  - Scroll down to the last row and you should see `plugin authjoomla3 joomlaPath` there you have to specify a valid joomla3 installation path
+  - Scroll down to the last row and you should see `Absolute path to a Joomla 3 installation` there you have to specify a valid Joomla 3 installation path
   - Save and everything should work.
 
 Now a few notes:
