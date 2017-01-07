@@ -1,6 +1,6 @@
 base   authjoomla3
 author Jury Verrigni
-email  jury.verrigni@skayahack.it
+email  jury.verrigni@skayahack.com
 date   2017-01-05
 name   authjoomla3 plugin
 desc   Authenticate using joomla3 users
