@@ -13,94 +13,51 @@ if (!defined('DOKU_INC')) {
 /**
  * Class auth_plugin_authjoomla3
  */
-class auth_plugin_authjoomla3 extends auth_plugin_authpdo
+class auth_plugin_authpdodrupal extends auth_plugin_authpdo
 {
-    protected $joomlaPath = '';
-    protected $joomlaConfig = array();
+    protected $drupalPath = '';
 
     /**
     * Before calling AuthPDO's construct we want to override database's
-    * settings with Joomla's ones
+    * settings with Drupal's ones
     **/
     public function __construct()
     {
-        $this->joomlaPath = $this->getConf('joomlaPath');
-
-        if ($this->joomlaPath == ''
-            || !is_dir($this->joomlaPath)
-            || !file_exists($this->joinPaths($this->joomlaPath, 'configuration.php'))) {
-            $this->_debug('Joomla not found at the specified path.', -1, __LINE__);
+        $this->drupalPath = $this->getConf('drupalPath');
+		
+        if ($this->drupalPath == ''
+            || !is_dir($this->drupalPath)
+            || !file_exists($this->joinPaths($this->drupalPath, 'includes' ,'password.inc'))) {
+            $this->_debug('Drupal password.inc not found at the specified path.', -1, __LINE__);
             $this->success = false;
             return;
         }
 
-        $this->setupPdoConfig();
-
         parent::__construct();
     }
+	
+	/**
+     * Check user+password
+     *
+     * @param   string $user the user name
+     * @param   string $pass the clear text password
+     * @return  bool
+     */
+    public function checkPass($user, $pass) {
+		$this->_debug('Checking password.', -1, __LINE__);
+        $userdata = $this->_selectUser($user);
 
-    /**
-    * After fetching user's groups we want to rename Joomla's default
-    * Administrator and Super Users to admin in order to make them automatically
-    * admin on DokuWiki
-    **/
-    protected function _selectUserGroups($userdata)
-    {
-        $groups = parent::_selectUserGroups($userdata);
-        foreach ($groups as &$group) {
-            if (in_array($group, array('Administrator', 'Super Users'))) {
-                $group = 'admin';
-            }
-        }
-        return $groups;
-    }
+        if($userdata == false) return false;
 
-    /**
-    * Here we override PDO's config with Joomla's one.
-    * Called from the constructor
-    */
-    protected function setupPdoConfig()
-    {
-        require_once $this->joinPaths($this->joomlaPath, 'configuration.php');
+		require_once $this->joinPaths($this->drupalPath, 'includes' ,'password.inc');
+		$hash = _password_crypt('sha512', $pass, $userdata['hash']);
 
-        $this->joomlaConfig = new JConfig;
-        $this->joomlaConfig->dbtype = str_replace('mysqli', 'mysql', $this->joomlaConfig->dbtype);
-        $this->conf['dsn'] = sprintf('%s:dbname=%s;host=%s', $this->joomlaConfig->dbtype, $this->joomlaConfig->db, $this->joomlaConfig->host);
-        $this->conf['user'] = $this->joomlaConfig->user;
-        $this->conf['pass'] = $this->joomlaConfig->password;
-
-        $this->setupPdoQueries();
-    }
-
-    /**
-    * These are the queries required from authPDO.
-    * Creating/deleting/updating users and groups is done from
-    * Joomla itself so we only need to fetch data from the DB.
-    */
-    protected function setupPdoQueries()
-    {
-        $this->conf['select-user'] = sprintf('
-			SELECT username as user, name, email as mail, password as hash, id as uid
-			FROM %s WHERE username = :user',
-            $this->getTableName('users'));
-
-        $this->conf['select-user-groups'] = sprintf('
-			SELECT title as `group` FROM %s as groups
-			LEFT JOIN %s as groupmap ON groups.id = groupmap.group_id
-			LEFT JOIN %s as user ON groupmap.user_id = user.id
-			WHERE user.username = :user OR user.id = :uid ',
-            $this->getTableName('usergroups'),
-            $this->getTableName('user_usergroup_map'),
-            $this->getTableName('users'));
-
-        $this->conf['select-groups'] = sprintf('
-			SELECT title as `group`, id as gid FROM %s',
-            $this->getTableName('usergroups'));
-    }
-
-    protected function getTableName($name)
-    {
-        return $this->joomlaConfig->dbprefix . $name;
+		if(\hash_equals($hash, $userdata['hash'])) {
+			$this->_debug('Correct password', -1, __LINE__);
+            return true;
+		}
+		$this->_debug('Wrong password', -1, __LINE__);
+		return false;
     }
 
     protected function joinPaths()

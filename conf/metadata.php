@@ -1,8 +1,27 @@
 <?php
 /**
- * Options for the authjoomla3 plugin
+ * Options for the authpdodrupal plugin
  *
- * @author Jury Verrigni <jury.verrigni@skayahack.com>
+ * @author Guus Kuiper <guuskuiper@gmail.com>
  */
 
-$meta['joomlaPath'] = array('string');
+$meta['drupalPath'] = array('string');
+$meta['debug']              = array('onoff', '_caution' => 'security');
+$meta['dsn']                = array('string', '_caution' => 'danger');
+$meta['user']               = array('string', '_caution' => 'danger');
+$meta['pass']               = array('password', '_caution' => 'danger', '_code' => 'base64');
+$meta['defaultgroup'] 		= array('authenticated user', '_caution' => 'danger');
+$meta['select-user']        = array('', '_caution' => 'danger');
+$meta['check-pass']         = array('', '_caution' => 'danger');
+$meta['select-user-groups'] = array('', '_caution' => 'danger');
+$meta['select-groups']      = array('', '_caution' => 'danger');
+$meta['insert-user']        = array('', '_caution' => 'danger');
+$meta['delete-user']        = array('', '_caution' => 'danger');
+$meta['list-users']         = array('', '_caution' => 'danger');
+$meta['count-users']        = array('', '_caution' => 'danger');
+$meta['update-user-info']   = array('', '_caution' => 'danger');
+$meta['update-user-login']  = array('', '_caution' => 'danger');
+$meta['update-user-pass']   = array('', '_caution' => 'danger');
+$meta['insert-group']       = array('', '_caution' => 'danger');
+$meta['join-group']         = array('', '_caution' => 'danger');
+$meta['leave-group']        = array('', '_caution' => 'danger');
